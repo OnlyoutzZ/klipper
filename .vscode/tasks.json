@@ -1,0 +1,90 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Klipper: Configure N32H76x USART1",
+      "type": "shell",
+      "command": "bash",
+      "args": [
+        "-lc",
+        "cp test/configs/n32h76x-serial.config .config && make olddefconfig"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Klipper: Menuconfig",
+      "type": "shell",
+      "command": "bash",
+      "args": [
+        "-lc",
+        "make menuconfig"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Klipper: Build",
+      "type": "shell",
+      "command": "bash",
+      "args": [
+        "-lc",
+        "make -j$(nproc)"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "problemMatcher": "$gcc"
+    },
+    {
+      "label": "Klipper: Build N32H76x",
+      "dependsOrder": "sequence",
+      "dependsOn": [
+        "Klipper: Configure N32H76x USART1",
+        "Klipper: Build"
+      ],
+      "problemMatcher": []
+    },
+    {
+      "label": "Klipper: Flash N32H76x (J-Link)",
+      "type": "shell",
+      "command": "bash",
+      "args": [
+        "-lc",
+        "printf 'r\\nloadbin out/klipper.bin 0x15000000\\nr\\ng\\nq\\n' | JLinkExe -device N32H760xIx7 -if SWD -speed 4000 -AutoConnect 1 -ExitOnError 1"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "dependsOn": [
+        "Klipper: Build N32H76x"
+      ],
+      "problemMatcher": []
+    },
+    {
+      "label": "Klipper: Clean",
+      "type": "shell",
+      "command": "bash",
+      "args": [
+        "-lc",
+        "make clean"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": []
+    }
+  ]
+}

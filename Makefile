@@ -26,14 +26,23 @@ src-y =
 dirs-y = src
 
 # Default compiler flags
+# Optimization level for debugging: default -O0 (easy gdb stepping).
+# Release builds: "make KLP_OPT=-O2" (original behavior).
 cc-option=$(shell if test -z "`$(1) $(2) -S -o /dev/null -xc /dev/null 2>&1`" \
     ; then echo "$(2)"; else echo "$(3)"; fi ;)
 
+KLP_OPT ?= -O0
+
 CFLAGS := -iquote $(OUT) -iquote src -iquote $(OUT)board-generic/ \
-		-std=gnu11 -O2 -MD -Wall \
+		-std=gnu11 $(KLP_OPT) -MD -Wall \
 		-Wold-style-definition $(call cc-option,$(CC),-Wtype-limits,) \
     -ffunction-sections -fdata-sections -fno-delete-null-pointer-checks
+ifneq ($(KLP_OPT),-O2)
+# Debug builds: no LTO / whole-program, so gdb sees real source lines
+CFLAGS += -fno-lto -fno-whole-program -fno-use-linker-plugin -ggdb3
+else
 CFLAGS += -flto=auto -fwhole-program -fno-use-linker-plugin -ggdb3
+endif
 
 OBJS_klipper.elf = $(patsubst %.c, $(OUT)src/%.o,$(src-y))
 OBJS_klipper.elf += $(OUT)compile_time_request.o

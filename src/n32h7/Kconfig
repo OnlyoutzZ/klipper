@@ -1,0 +1,175 @@
+# Kconfig settings for Nsing N32H7 processors
+
+if MACH_N32H7
+
+config N32H7_SELECT
+    bool
+    default y
+    select HAVE_GPIO
+    select HAVE_STRICT_TIMING
+    select HAVE_STEPPER_OPTIMIZED_BOTH_EDGE
+
+config BOARD_DIRECTORY
+    string
+    default "n32h7"
+
+choice
+    prompt "Processor model"
+    default MACH_N32H76X
+
+config MACH_N32H76X
+    bool "N32H76x"
+
+endchoice
+
+choice
+    prompt "Boot and execution mode"
+    default N32H76X_ITCM_FLASH
+
+config N32H76X_ITCM_FLASH
+    bool "Boot from Flash, run from ITCM"
+
+endchoice
+
+choice
+    prompt "Communication interface"
+    default N32H7_SERIAL_USART1
+
+config N32H7_SERIAL_USART1
+    bool "USART1 on PA10/PA9"
+    select SERIAL
+
+config N32H7_SERIAL_USART1_ALT_PB7_PB6
+    bool "USART1 on PB7/PB6"
+    select SERIAL
+
+config N32H7_SERIAL_USART1_ALT_PF1_PF0
+    bool "USART1 on PF1/PF0"
+    select SERIAL
+
+config N32H7_SERIAL_USART2
+    bool "USART2 on PA3/PA2"
+    select SERIAL
+
+config N32H7_SERIAL_USART2_ALT_PD6_PD5
+    bool "USART2 on PD6/PD5"
+    select SERIAL
+
+config N32H7_SERIAL_USART3
+    bool "USART3 on PB11/PB10"
+    select SERIAL
+
+config N32H7_SERIAL_USART3_ALT_PD9_PD8
+    bool "USART3 on PD9/PD8"
+    select SERIAL
+
+config N32H7_SERIAL_USART3_ALT_PC11_PC10
+    bool "USART3 on PC11/PC10"
+    select SERIAL
+
+config N32H7_SERIAL_USART4
+    bool "USART4 on PC7/PC6"
+    select SERIAL
+
+config N32H7_SERIAL_USART5
+    bool "USART5 on PE2/PE3"
+    select SERIAL
+
+config N32H7_SERIAL_USART6
+    bool "USART6 on PE4/PE5"
+    select SERIAL
+
+config N32H7_SERIAL_USART6_ALT_PH14_PH15
+    bool "USART6 on PH14/PH15"
+    select SERIAL
+
+config N32H7_SERIAL_USART7
+    bool "USART7 on PH4/PH5"
+    select SERIAL
+
+config N32H7_SERIAL_USART7_ALT_PF14_PF15
+    bool "USART7 on PF14/PF15"
+    select SERIAL
+
+config N32H7_SERIAL_USART8
+    bool "USART8 on PI2/PI3"
+    select SERIAL
+
+config N32H7_SERIAL_USART8_ALT_PI4_PI5
+    bool "USART8 on PI4/PI5"
+    select SERIAL
+
+endchoice
+
+config MCU
+    string
+    default "n32h76x"
+
+config CLOCK_FREQ
+    int
+    default 600000000
+
+config FLASH_BOOT_ADDRESS
+    hex
+    default 0x15000000
+
+config FLASH_APPLICATION_ADDRESS
+    hex
+    default 0x15000000
+
+config FLASH_SIZE
+    hex
+    default 0x1E0000
+
+config N32H7_ITCM_START
+    hex
+    default 0x00000000
+
+config N32H7_ITCM_SIZE
+    hex
+    default 0x000C0000
+
+config N32H7_DTCM_START
+    hex
+    default 0x20000000
+
+config N32H7_DTCM_SIZE
+    hex
+    default 0x00040000
+
+config N32H7_AXI_SRAM_START
+    hex
+    default 0x24000000
+
+config N32H7_AXI_SRAM_SIZE
+    hex
+    default 0x00020000
+
+config RAM_START
+    hex
+    default 0x30000000
+
+config RAM_SIZE
+    hex
+    default 0x00050000
+
+config N32H7_AHB_SRAM5_START
+    hex
+    default 0x30050000
+
+config N32H7_AHB_SRAM5_SIZE
+    hex
+    default 0x00008000
+
+config N32H7_TCM_SIZE_VALUE
+    hex
+    default 0x02
+    help
+        N32H76x TCM split value. The default matches the first bring-up
+        memory layout: 768KiB ITCM and 256KiB DTCM.
+
+config STACK_SIZE
+    int
+    default 8192
+
+endif

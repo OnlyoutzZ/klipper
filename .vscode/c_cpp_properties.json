@@ -1,0 +1,29 @@
+{
+  "version": 4,
+  "configurations": [
+    {
+      "name": "N32H76x",
+      "compilerPath": "arm-none-eabi-gcc",
+      "cStandard": "gnu11",
+      "intelliSenseMode": "gcc-arm",
+      "includePath": [
+        "${workspaceFolder}/out",
+        "${workspaceFolder}/src",
+        "${workspaceFolder}/src/n32h7",
+        "${workspaceFolder}/src/generic",
+        "${workspaceFolder}/lib/n32h7xx/include",
+        "${workspaceFolder}/lib/cmsis-core"
+      ],
+      "defines": [
+        "CORE_CM7",
+        "__CORTEX_M=7",
+        "N32H76x",
+        "USING_TCM",
+        "TCM_SIZE_VALUE=0x02",
+        "N32H7_SYSTEM_CLOCK_HZ=600000000",
+        "__ICACHE_PRESENT=1",
+        "__DCACHE_PRESENT=1"
+      ]
+    }
+  ]
+}

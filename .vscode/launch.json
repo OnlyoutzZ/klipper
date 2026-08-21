@@ -1,0 +1,40 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "N32H76x: J-Link Launch and Load ELF",
+      "type": "cortex-debug",
+      "request": "launch",
+      "cwd": "${workspaceFolder}",
+      "executable": "${workspaceFolder}/out/klipper.elf",
+      "servertype": "jlink",
+      "device": "N32H760xIx7",
+      "interface": "swd",
+      "gdbPath": "gdb-multiarch",
+      "objdumpPath": "/usr/bin/objdump",
+      "nmPath": "/usr/bin/nm",
+      "preLaunchTask": "Klipper: Build N32H76x",
+      "runToEntryPoint": "armcm_main",
+      "preLaunchCommands": [
+        "monitor reset halt"
+      ]
+    },
+    {
+      "name": "N32H76x: J-Link Attach to Pre-Flashed Target",
+      "type": "cortex-debug",
+      "request": "attach",
+      "cwd": "${workspaceFolder}",
+      "executable": "${workspaceFolder}/out/klipper.elf",
+      "servertype": "jlink",
+      "device": "N32H760xIx7",
+      "interface": "swd",
+      "gdbPath": "gdb-multiarch",
+      "objdumpPath": "/usr/bin/objdump",
+      "nmPath": "/usr/bin/nm",
+      "preLaunchTask": "Klipper: Build N32H76x",
+      "postAttachCommands": [
+        "monitor halt"
+      ]
+    }
+  ]
+}
