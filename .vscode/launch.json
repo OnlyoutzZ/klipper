@@ -2,39 +2,42 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "N32H76x: J-Link Launch and Load ELF",
+      "name": "N32H760 - shared J-Link (Launch)",
       "type": "cortex-debug",
       "request": "launch",
       "cwd": "${workspaceFolder}",
       "executable": "${workspaceFolder}/out/klipper.elf",
-      "servertype": "jlink",
-      "device": "N32H760xIx7",
-      "interface": "swd",
-      "gdbPath": "gdb-multiarch",
+      "gdbPath": "/usr/bin/gdb-multiarch",
       "objdumpPath": "/usr/bin/objdump",
       "nmPath": "/usr/bin/nm",
-      "preLaunchTask": "Klipper: Build N32H76x",
+      "servertype": "external",
+      "gdbTarget": "localhost:2331",
+      "device": "N32H760ZI",
+      "interface": "swd",
       "runToEntryPoint": "armcm_main",
+      "preLaunchTask": "debug: prepare",
       "preLaunchCommands": [
         "monitor reset halt"
-      ]
+      ],
+      "showDevDebugOutput": "none"
     },
     {
-      "name": "N32H76x: J-Link Attach to Pre-Flashed Target",
+      "name": "N32H760 - shared J-Link (Attach)",
       "type": "cortex-debug",
       "request": "attach",
       "cwd": "${workspaceFolder}",
       "executable": "${workspaceFolder}/out/klipper.elf",
-      "servertype": "jlink",
-      "device": "N32H760xIx7",
-      "interface": "swd",
-      "gdbPath": "gdb-multiarch",
+      "gdbPath": "/usr/bin/gdb-multiarch",
       "objdumpPath": "/usr/bin/objdump",
       "nmPath": "/usr/bin/nm",
-      "preLaunchTask": "Klipper: Build N32H76x",
+      "servertype": "external",
+      "gdbTarget": "localhost:2331",
+      "device": "N32H760ZI",
+      "interface": "swd",
       "postAttachCommands": [
         "monitor halt"
-      ]
+      ],
+      "showDevDebugOutput": "none"
     }
   ]
 }

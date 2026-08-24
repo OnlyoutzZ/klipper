@@ -46,7 +46,20 @@
         "kind": "build",
         "isDefault": true
       },
-      "problemMatcher": "$gcc"
+      "problemMatcher": {
+        "owner": "cpp",
+        "fileLocation": [
+          "relative",
+          "${workspaceFolder}"
+        ],
+        "pattern": {
+          "regexp": "^(.*?):(\\d+):(\\d+):\\s+(?:error|warning):\\s+(.*)$",
+          "file": 1,
+          "line": 2,
+          "column": 3,
+          "message": 4
+        }
+      }
     },
     {
       "label": "Klipper: Build N32H76x",
@@ -58,12 +71,38 @@
       "problemMatcher": []
     },
     {
-      "label": "Klipper: Flash N32H76x (J-Link)",
+      "label": "board: status",
       "type": "shell",
       "command": "bash",
       "args": [
         "-lc",
-        "printf 'r\\nloadbin out/klipper.bin 0x15000000\\nr\\ng\\nq\\n' | JLinkExe -device N32H760xIx7 -if SWD -speed 4000 -AutoConnect 1 -ExitOnError 1"
+        "boardctl status n32h760-a"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "board: test",
+      "type": "shell",
+      "command": "bash",
+      "args": [
+        "-lc",
+        "boardctl test n32h760-a"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "board: flash",
+      "type": "shell",
+      "command": "bash",
+      "args": [
+        "-lc",
+        "boardctl flash n32h760-a out/klipper.bin 0x15000000"
       ],
       "options": {
         "cwd": "${workspaceFolder}"
@@ -71,6 +110,92 @@
       "dependsOn": [
         "Klipper: Build N32H76x"
       ],
+      "problemMatcher": []
+    },
+    {
+      "label": "board: acquire",
+      "type": "shell",
+      "command": "bash",
+      "args": [
+        "-lc",
+        "boardctl acquire n32h760-a"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "board: gdbserver",
+      "type": "shell",
+      "command": "bash",
+      "args": [
+        "-lc",
+        "boardctl debug n32h760-a"
+      ],
+      "isBackground": true,
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": {
+        "owner": "jlink",
+        "pattern": [
+          {
+            "regexp": "^(JLinkGDBServerNoProblemOutputMarker)$",
+            "file": 1,
+            "line": 2,
+            "column": 3,
+            "message": 4
+          }
+        ],
+        "background": {
+          "activeOnStart": true,
+          "beginsPattern": ".*",
+          "endsPattern": "Waiting for GDB connection|Listening on TCP/IP port 2331"
+        }
+      }
+    },
+    {
+      "label": "debug: prepare",
+      "type": "shell",
+      "command": "bash",
+      "args": [
+        "-lc",
+        "boardctl release n32h760-a 2>/dev/null || true; cp test/configs/n32h76x-serial.config .config && make olddefconfig && make -j$(nproc) && boardctl acquire n32h760-a && ok=0 && for i in $(seq 1 15); do if boardctl debug n32h760-a; then ok=1; break; fi; sleep 1; done && [ $ok = 1 ]"
+      ],
+      "isBackground": true,
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": {
+        "owner": "jlink",
+        "pattern": [
+          {
+            "regexp": "^(JLinkGDBServerNoProblemOutputMarker)$",
+            "file": 1,
+            "line": 2,
+            "column": 3,
+            "message": 4
+          }
+        ],
+        "background": {
+          "activeOnStart": true,
+          "beginsPattern": ".*",
+          "endsPattern": "Waiting for GDB connection|Listening on TCP/IP port 2331"
+        }
+      }
+    },
+    {
+      "label": "board: release",
+      "type": "shell",
+      "command": "bash",
+      "args": [
+        "-lc",
+        "boardctl release n32h760-a"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
       "problemMatcher": []
     },
     {
