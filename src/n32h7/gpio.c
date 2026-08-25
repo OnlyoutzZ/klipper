@@ -6,25 +6,9 @@
 
 #include "board/irq.h" // irq_save
 #include "command.h" // DECL_ENUMERATION_RANGE
-#include "generic/io.h" // readw, writew
 #include "gpio.h" // gpio_out_setup
 #include "internal.h" // gpio_peripheral
 #include "sched.h" // shutdown
-
-// Note: the N32H7 reference manual requires that GPIOx_SR, GPIOx_PID,
-// GPIOx_POD, GPIOx_PBSC and GPIOx_PBC only be accessed as 16-bit
-// words.  All other GPIO registers support 32-bit accesses.
-
-static uint16_t
-gpio_readw(volatile uint32_t *reg)
-{
-    return readw((const void *)reg);
-}
-static void
-gpio_writew(volatile uint32_t *reg, uint16_t val)
-{
-    writew((void *)reg, val);
-}
 
 DECL_ENUMERATION_RANGE("pin", "PA0", GPIO('A', 0), 16);
 DECL_ENUMERATION_RANGE("pin", "PB0", GPIO('B', 0), 16);
@@ -103,7 +87,8 @@ gpio_peripheral(uint32_t gpio, uint32_t mode, int pullup)
     uint32_t func = (mode >> 4) & 0x0f;
     uint32_t od = (mode & GPIO_OPEN_DRAIN) ? 1U : 0U;
     uint32_t pup = pullup ? (pullup > 0 ? 1U : 2U) : 0U;
-    uint32_t speed = (mode & GPIO_HIGH_SPEED) ? 0U : 1U;
+    uint32_t speed = (mode & GPIO_LOW_SLEW_RATE) ? 1U : 0U;
+    uint32_t ds = (mode >> 10) & 0x03;
     uint32_t shift = pos * 2;
     uint32_t mask2 = 3U << shift;
     uint32_t af_shift = (pos % 8) * 4;
@@ -118,9 +103,8 @@ gpio_peripheral(uint32_t gpio, uint32_t mode, int pullup)
     regs->PMODE = (regs->PMODE & ~mask2) | (mode_bits << shift);
     regs->PUPD = (regs->PUPD & ~mask2) | (pup << shift);
     regs->POTYPE = (regs->POTYPE & ~(1U << pos)) | (od << pos);
-    // GPIOx_SR only supports 16-bit accesses
-    uint16_t sr = gpio_readw(&regs->SR);
-    gpio_writew(&regs->SR, (sr & ~(1U << pos)) | (speed << pos));
+    regs->SR = (regs->SR & ~(1U << pos)) | (speed << pos);
+    regs->DS = (regs->DS & ~mask2) | (ds << shift);
 }
 
 struct gpio_out
@@ -140,10 +124,10 @@ gpio_out_reset(struct gpio_out g, uint32_t val)
     irqstatus_t flag = irq_save();
     // Program the output level before switching the pin to output mode
     if (val)
-        gpio_writew(&regs->PBSC, g.bit);
+        regs->PBSC = g.bit;
     else
-        gpio_writew(&regs->PBC, g.bit);
-    gpio_peripheral(pin, GPIO_OUTPUT, 0);
+        regs->PBC = g.bit;
+    gpio_peripheral(pin, GPIO_OUTPUT, GPIO_PULL_NONE);
     irq_restore(flag);
 }
 
@@ -151,11 +135,8 @@ void
 gpio_out_toggle_noirq(struct gpio_out g)
 {
     GPIO_Module *regs = g.regs;
-    // POD holds the last value written; toggle via a set or clear write
-    if (gpio_readw(&regs->POD) & g.bit)
-        gpio_writew(&regs->PBC, g.bit);
-    else
-        gpio_writew(&regs->PBSC, g.bit);
+    // Toggle the POD output data bit directly
+    regs->POD ^= g.bit;
 }
 
 void
@@ -171,9 +152,9 @@ gpio_out_write(struct gpio_out g, uint32_t val)
 {
     GPIO_Module *regs = g.regs;
     if (val)
-        gpio_writew(&regs->PBSC, g.bit);
+        regs->PBSC = g.bit;
     else
-        gpio_writew(&regs->PBC, g.bit);
+        regs->PBC = g.bit;
 }
 
 struct gpio_in
@@ -199,5 +180,5 @@ uint8_t
 gpio_in_read(struct gpio_in g)
 {
     GPIO_Module *regs = g.regs;
-    return !!(gpio_readw(&regs->PID) & g.bit);
+    return !!(regs->PID & g.bit);
 }

@@ -15,8 +15,15 @@
 #define GPIO_OUTPUT 1U
 #define GPIO_FUNCTION(fn) (2U | ((fn) << 4))
 #define GPIO_ANALOG 3U
-#define GPIO_OPEN_DRAIN 0x100U
-#define GPIO_HIGH_SPEED 0x200U
+#define GPIO_OPEN_DRAIN 0x100U  // default is push-pull
+#define GPIO_LOW_SLEW_RATE 0x200U // default is high slew rate
+#define GPIO_DS_LEVEL0  0x000U
+#define GPIO_DS_LEVEL1  0x400U
+#define GPIO_DS_LEVEL2  0x800U
+#define GPIO_DS_LEVEL3  0xC00U
+#define GPIO_PULL_NONE  0x00U
+#define GPIO_PULL_UP    0x01U
+#define GPIO_PULL_DOWN  0x02U
 
 struct cline {
     volatile uint32_t *en;
