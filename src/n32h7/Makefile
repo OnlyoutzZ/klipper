@@ -34,6 +34,7 @@ src-y += n32h7/boot_itcm.c
 src-y += n32h7/clockline.c
 src-y += n32h7/n32h76x.c
 src-y += n32h7/gpio.c
+src-$(CONFIG_WANT_HARD_PWM) += n32h7/hard_pwm.c
 src-$(CONFIG_SERIAL) += n32h7/serial.c generic/serial_irq.c
 
 src-y += ../lib/n32h7xx/system_n32h7xx.c

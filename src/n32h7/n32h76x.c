@@ -282,6 +282,13 @@ clock_setup_to_pll1(uint32_t pll_source, uint32_t sysclk_freq)
     /* Store the new value */
     RCC->SYSBUSDIV2 = reg_value1;
 
+    // Feed all standard PWM timers directly from their 300MHz AHB source.
+    // These timer kernel dividers are independent of the APB bus dividers.
+    RCC->APB1DIV1 &= ~RCC_APB1DIV1_APB1GTIMDIV;
+    RCC->APB2DIV1 &= ~(RCC_APB2DIV1_APB2ATIMDIV
+                       | RCC_APB2DIV1_APB2GTIMDIV);
+    RCC->APB5DIV1 &= ~RCC_APB5DIV1_APB5ATIMDIV;
+
     if (rcc_calculate_pll_param(input_freq, pll_freq, &nrtmp, &nftmp, &wbtmp) != 0U)
     {
         /* get the register value */
@@ -723,6 +730,17 @@ lookup_clock_line(uint32_t periph_base)
 uint32_t
 get_pclock_frequency(uint32_t periph_base)
 {
+    // ATIM/GTIM kernel clocks come directly from AHB1/AHB2/AHB5.  The
+    // corresponding dividers are configured to /1 in clock_setup_to_pll1().
+    if (periph_base == ATIM1_BASE || periph_base == ATIM2_BASE
+        || periph_base == ATIM3_BASE || periph_base == ATIM4_BASE
+        || periph_base == GTIMA1_BASE || periph_base == GTIMA2_BASE
+        || periph_base == GTIMA3_BASE || periph_base == GTIMA4_BASE
+        || periph_base == GTIMA5_BASE || periph_base == GTIMA6_BASE
+        || periph_base == GTIMA7_BASE || periph_base == GTIMB1_BASE
+        || periph_base == GTIMB2_BASE || periph_base == GTIMB3_BASE)
+        return CONFIG_CLOCK_FREQ / 2;
+
     // USART1/USART2 kernel clocks come from HCLK (AHB1) through the
     // RCC_APB1DIV1.APB1USARTDIV prescaler (reset value /1), unlike
     // USART3-8 which use their APB bus clock directly.

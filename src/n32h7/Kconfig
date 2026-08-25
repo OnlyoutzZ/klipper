@@ -6,6 +6,7 @@ config N32H7_SELECT
     bool
     default y
     select HAVE_GPIO
+    select HAVE_GPIO_HARD_PWM
     select HAVE_STRICT_TIMING
     select HAVE_STEPPER_OPTIMIZED_BOTH_EDGE
 

@@ -21,4 +21,11 @@ struct gpio_in gpio_in_setup(uint32_t pin, int32_t pull_up);
 void gpio_in_reset(struct gpio_in g, int32_t pull_up);
 uint8_t gpio_in_read(struct gpio_in g);
 
+struct gpio_pwm {
+    void *reg;
+    uint32_t hwpwm_ticks;
+};
+struct gpio_pwm gpio_pwm_setup(uint8_t pin, uint32_t cycle_time, uint32_t val);
+void gpio_pwm_write(struct gpio_pwm g, uint32_t val);
+
 #endif // gpio.h
