@@ -37,12 +37,13 @@ void spi_prepare(struct spi_config config);
 void spi_transfer(struct spi_config config, uint8_t receive_data
                   , uint8_t len, uint8_t *data);
 
-// i2c_config is only referenced by i2ccmds.h (via sensor code that also uses
-// SPI); the N32H7 I2C driver is not ported yet, so the type is defined but
-// unused unless CONFIG_HAVE_GPIO_I2C is enabled.
 struct i2c_config {
     void *i2c;
     uint8_t addr;
 };
+struct i2c_config i2c_setup(uint32_t bus, uint32_t rate, uint8_t addr);
+int i2c_write(struct i2c_config config, uint8_t write_len, uint8_t *write);
+int i2c_read(struct i2c_config config, uint8_t reg_len, uint8_t *reg
+             , uint8_t read_len, uint8_t *read);
 
 #endif // gpio.h
