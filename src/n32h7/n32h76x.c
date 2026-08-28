@@ -282,6 +282,19 @@ clock_setup_to_pll1(uint32_t pll_source, uint32_t sysclk_freq)
     /* Store the new value */
     RCC->SYSBUSDIV2 = reg_value1;
 
+    // Configure the ADC1/2/3 kernel clock.  AHB1 runs at sysclk/2 (300MHz at
+    // 600MHz); divide it down to ~37.5MHz for the 12-bit SAR ADC.  Adjust
+    // this divisor if the datasheet specifies a different ADC max clock.
+    uint32_t adc_div = sysclk_freq / (2*10000000);
+    if (adc_div < 2)
+        adc_div = 2;
+    if (adc_div > 63)
+        adc_div = 63;
+    reg_value1 = RCC->AHB1DIV2;
+    reg_value1 &= ~(0x3F | (0x3F << 8) | (0x3F << 16));
+    reg_value1 |= adc_div | (adc_div << 8) | (adc_div << 16);
+    RCC->AHB1DIV2 = reg_value1;
+
     // Feed all standard PWM timers directly from their 300MHz AHB source.
     // These timer kernel dividers are independent of the APB bus dividers.
     RCC->APB1DIV1 &= ~RCC_APB1DIV1_APB1GTIMDIV;

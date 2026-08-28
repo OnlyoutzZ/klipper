@@ -38,6 +38,7 @@ src-$(CONFIG_WANT_HARD_PWM) += n32h7/hard_pwm.c
 src-$(CONFIG_SERIAL) += n32h7/serial.c generic/serial_irq.c
 src-$(CONFIG_WANT_I2C) += n32h7/i2c.c
 src-$(CONFIG_WANT_SPI) += n32h7/spi.c
+src-$(CONFIG_WANT_ADC) += n32h7/adc.c
 
 src-y += ../lib/n32h7xx/system_n32h7xx.c
 

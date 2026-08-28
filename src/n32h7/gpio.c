@@ -76,6 +76,26 @@ gpio_clock_enable(GPIO_Module *regs)
     }
 }
 
+
+// static volatile uint32_t * const AN_regs[] = {
+//     (volatile uint32_t*)(AFIO_BASE+0x28), (volatile uint32_t*)(AFIO_BASE+0x2C),
+//     (volatile uint32_t*)(AFIO_BASE+0x30), (volatile uint32_t*)(AFIO_BASE+0x3C),
+//     (volatile uint32_t*)(AFIO_BASE+0x44), (volatile uint32_t*)(AFIO_BASE+0x48),
+//     (volatile uint32_t*)(AFIO_BASE+0x4C)
+// };
+
+// // 所有IO的{寄存器索引, 位偏移}
+// static const uint8_t An_io[] = {
+//     0,0x00, 0,0x01, 0,0x02, 0,0x03, 0,0x04, 0,0x05, 0,0x06, 0,0x07, 0,0x08, 0,0x09,  // PA0-9
+//     1,0x10, 1,0x11,                                         // PB0-1
+//     2,0x20, 2,0x21, 2,0x22, 2,0x23, 2,0x24, 2,0x25, 2,0x26, 2,0x27, 2,0x28, 2,0x29, 2,0x2A, // PC0-13
+//     3,0x50, 3,0x51, 3,0x52, 3,0x53, 3,0x54, 3,0x55, 3,0x56, 3,0x57, 3,0x58, 3,0x59, 3,0x5A, 3,0x5B, // PF3-14
+//     4,0, 4,1, 4,2, 4,3,                                // PH2-5
+//     5,0, 5,1,                                         // PI8,15
+//     6,0, 6,1, 6,2, 6,3, 6,4, 6,5                      // PJ0,3-7
+// };
+
+
 void
 gpio_peripheral(uint32_t gpio, uint32_t mode, int pullup)
 {
@@ -105,6 +125,15 @@ gpio_peripheral(uint32_t gpio, uint32_t mode, int pullup)
     regs->POTYPE = (regs->POTYPE & ~(1U << pos)) | (od << pos);
     regs->SR = (regs->SR & ~(1U << pos)) | (speed << pos);
     regs->DS = (regs->DS & ~mask2) | (ds << shift);
+
+    // if(mode == GPIO_ANALOG){
+    //     for (int i=0; i<(sizeof(An_io)/2); i++){
+    //         if (gpio_read(i)) 
+    //         {
+    //             *regs[io[i*2]] |= (1U << io[i*2+1]);
+    //         }
+    //     }   
+    // }
 }
 
 struct gpio_out
