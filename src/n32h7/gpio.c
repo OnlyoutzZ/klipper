@@ -77,23 +77,61 @@ gpio_clock_enable(GPIO_Module *regs)
 }
 
 
-// static volatile uint32_t * const AN_regs[] = {
-//     (volatile uint32_t*)(AFIO_BASE+0x28), (volatile uint32_t*)(AFIO_BASE+0x2C),
-//     (volatile uint32_t*)(AFIO_BASE+0x30), (volatile uint32_t*)(AFIO_BASE+0x3C),
-//     (volatile uint32_t*)(AFIO_BASE+0x44), (volatile uint32_t*)(AFIO_BASE+0x48),
-//     (volatile uint32_t*)(AFIO_BASE+0x4C)
-// };
+// AFIO 模拟信号通道使能寄存器 (ANAEN_CFG0..6, 见 gpio.md)
+static volatile uint32_t * const AN_regs[] = {
+    &AFIO->ANAEN_CFG0, &AFIO->ANAEN_CFG1, &AFIO->ANAEN_CFG2,
+    &AFIO->ANAEN_CFG3, &AFIO->ANAEN_CFG4, &AFIO->ANAEN_CFG5,
+    &AFIO->ANAEN_CFG6,
+};
 
-// // 所有IO的{寄存器索引, 位偏移}
-// static const uint8_t An_io[] = {
-//     0,0x00, 0,0x01, 0,0x02, 0,0x03, 0,0x04, 0,0x05, 0,0x06, 0,0x07, 0,0x08, 0,0x09,  // PA0-9
-//     1,0x10, 1,0x11,                                         // PB0-1
-//     2,0x20, 2,0x21, 2,0x22, 2,0x23, 2,0x24, 2,0x25, 2,0x26, 2,0x27, 2,0x28, 2,0x29, 2,0x2A, // PC0-13
-//     3,0x50, 3,0x51, 3,0x52, 3,0x53, 3,0x54, 3,0x55, 3,0x56, 3,0x57, 3,0x58, 3,0x59, 3,0x5A, 3,0x5B, // PF3-14
-//     4,0, 4,1, 4,2, 4,3,                                // PH2-5
-//     5,0, 5,1,                                         // PI8,15
-//     6,0, 6,1, 6,2, 6,3, 6,4, 6,5                      // PJ0,3-7
-// };
+// 模拟信号通道引脚映射 (参考 gpio.md): {GPIO引脚, AN_regs索引, 位}
+// 注: md 中的 PAx_C/PCx_C 变体引脚未纳入(不是标准 Klipper 引脚)
+struct an_io {
+    uint8_t pin;
+    uint8_t reg;
+    uint8_t bit;
+};
+static const struct an_io An_io[] = {
+    // ANAEN_CFG0: PA0/PA1/PA2..PA7 (bit1/bit3/bit4..bit9)
+    { GPIO('A',0), 0, 1 }, { GPIO('A',1), 0, 3 },
+    { GPIO('A',2), 0, 4 }, { GPIO('A',3), 0, 5 },
+    { GPIO('A',4), 0, 6 }, { GPIO('A',5), 0, 7 },
+    { GPIO('A',6), 0, 8 }, { GPIO('A',7), 0, 9 },
+    // ANAEN_CFG1: PB0/PB1
+    { GPIO('B',0), 1, 0 }, { GPIO('B',1), 1, 1 },
+    // ANAEN_CFG2: PC0..PC6/PC8/PC13 (PC2_C/PC3_C 变体不用)
+    { GPIO('C',0), 2, 0 }, { GPIO('C',1), 2, 1 },
+    { GPIO('C',2), 2, 2 }, { GPIO('C',3), 2, 4 },
+    { GPIO('C',4), 2, 6 }, { GPIO('C',5), 2, 7 },
+    { GPIO('C',6), 2, 8 }, { GPIO('C',8), 2, 9 },
+    { GPIO('C',13), 2, 10 },
+    // ANAEN_CFG3: PF3..PF14
+    { GPIO('F',3), 3, 0 }, { GPIO('F',4), 3, 1 },
+    { GPIO('F',5), 3, 2 }, { GPIO('F',6), 3, 3 },
+    { GPIO('F',7), 3, 4 }, { GPIO('F',8), 3, 5 },
+    { GPIO('F',9), 3, 6 }, { GPIO('F',10), 3, 7 },
+    { GPIO('F',11), 3, 8 }, { GPIO('F',12), 3, 9 },
+    { GPIO('F',13), 3, 10 }, { GPIO('F',14), 3, 11 },
+    // ANAEN_CFG4: PH2..PH5
+    { GPIO('H',2), 4, 0 }, { GPIO('H',3), 4, 1 },
+    { GPIO('H',4), 4, 2 }, { GPIO('H',5), 4, 3 },
+    // ANAEN_CFG5: PI8/PI15
+    { GPIO('I',8), 5, 0 }, { GPIO('I',15), 5, 1 },
+    // ANAEN_CFG6: PJ0/PJ3..PJ7
+    { GPIO('J',0), 6, 0 }, { GPIO('J',3), 6, 1 },
+    { GPIO('J',4), 6, 2 }, { GPIO('J',5), 6, 3 },
+    { GPIO('J',6), 6, 4 }, { GPIO('J',7), 6, 5 },
+};
+
+// 查询gpio是否在An_io表中, 命中返回下标, 否则返回-1
+static int
+An_io_find(uint32_t gpio)
+{
+    for (unsigned int i = 0; i < ARRAY_SIZE(An_io); i++)
+        if (An_io[i].pin == gpio)
+            return i;
+    return -1;
+}
 
 
 void
@@ -126,14 +164,15 @@ gpio_peripheral(uint32_t gpio, uint32_t mode, int pullup)
     regs->SR = (regs->SR & ~(1U << pos)) | (speed << pos);
     regs->DS = (regs->DS & ~mask2) | (ds << shift);
 
-    // if(mode == GPIO_ANALOG){
-    //     for (int i=0; i<(sizeof(An_io)/2); i++){
-    //         if (gpio_read(i)) 
-    //         {
-    //             *regs[io[i*2]] |= (1U << io[i*2+1]);
-    //         }
-    //     }   
-    // }
+    if (mode == GPIO_ANALOG) {
+        // 模拟输入: 若该IO是模拟信号通道(见gpio.md), 使能对应的ANAEN寄存器位
+        int idx = An_io_find(gpio);
+        if (idx >= 0) {
+            if (!is_enabled_pclock(AFIO_BASE))
+                enable_pclock(AFIO_BASE);
+            *AN_regs[An_io[idx].reg] |= (1U << An_io[idx].bit);
+        }
+    }
 }
 
 struct gpio_out

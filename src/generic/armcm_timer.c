@@ -36,7 +36,6 @@ timer_set_diff(uint32_t value)
 {
     SysTick->LOAD = value;
     SysTick->VAL = 0;
-    SysTick->LOAD = 0;
 }
 
 // Return the current time (in absolute clock ticks).

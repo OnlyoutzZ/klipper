@@ -19,21 +19,24 @@ DECL_CONSTANT("ADC_MAX", 4095);
 DECL_ENUMERATION("pin", "ADC_TEMPERATURE", ADC_TEMPERATURE_PIN);
 
 static const uint8_t adc_pins[] = {
-    GPIO('A', 0), GPIO('A', 1), GPIO('A', 2), GPIO('A', 3),
-    GPIO('A', 4), GPIO('A', 5), GPIO('A', 6), GPIO('A', 7),
-    GPIO('B', 0), GPIO('B', 1), GPIO('C', 0), GPIO('C', 1),
-    GPIO('C', 2), GPIO('C', 3), GPIO('C', 4), GPIO('C', 5),
+    0x00,         0x00,        GPIO('F', 11), GPIO('A', 6), GPIO('C', 4), GPIO('B', 1),
+    GPIO('F', 12),GPIO('A', 7),GPIO('C', 5),  GPIO('B', 0), GPIO('C', 0), GPIO('C', 1),
+    GPIO('C', 2), GPIO('C', 3),GPIO('A', 2), GPIO('A', 3),  GPIO('A', 0), GPIO('A', 1),
+    GPIO('A', 4), GPIO('A', 5),
 
+    0x00,         0x00,        GPIO('F', 13),0x00,         0x00,         0x00,
+    GPIO('F', 14),0x00,        0x00,         0x00,         0x00,         0x00,
+    0x00,        0x00,         GPIO('A', 2), GPIO('A', 3), 0x00,         0x00,         
+    0x00,        0x00,
+
+    0x00,        0x00,         GPIO('F', 9), GPIO('F', 7), GPIO('F', 5), GPIO('F', 3),
+    GPIO('F',10),GPIO('F', 8), GPIO('F', 6), GPIO('F', 4), 0x00,         0x00,
+    0x00,        GPIO('H', 2), GPIO('H', 3), GPIO('H', 4), GPIO('H', 5), 0x00,
+    
 #if CONFIG_MACH_N32H7
     ADC_TEMPERATURE_PIN,
 #endif
-
-#if CONFIG_MACH_N32H7
-    0x00, 0x00, 0x00, 0x00,
-    GPIO('F', 6), GPIO('F', 7), GPIO('F', 8), GPIO('F', 9),
-    GPIO('F', 10), GPIO('F', 3), 0x00, 0x00,
-    0x00, 0x00, GPIO('F', 4), GPIO('F', 5),
-#endif
+    0x00
 };
 
 // ADC timing:
@@ -76,6 +79,8 @@ gpio_adc_setup(uint32_t pin)
     if (!is_enabled_pclock(adc_base)) {
         enable_pclock(adc_base);
         adc_calibrate(adc);
+
+        adc->CTRL3 |= ( ADC_CTRL3_RES);
         uint32_t aticks = 4; // mid-range sample time (see datasheet)
         adc->SAMPT1 = (aticks | (aticks << 4) | (aticks << 8) | (aticks << 12)
                        | (aticks << 16) | (aticks << 20) | (aticks << 24)
